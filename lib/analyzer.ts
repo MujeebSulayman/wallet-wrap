@@ -254,11 +254,10 @@ export function analyzeWalletData(
 		}
 	});
 
-	// Net flow (received - sent)
+	// Net flow (received - sent) - only native ETH, not tokens
+	// Token values have different decimals and shouldn't be mixed with ETH
 	const netFlow = (
-		BigInt(totalValueReceived) +
-		BigInt(tokenValueReceived) -
-		(BigInt(totalValueSent) + BigInt(tokenValueSent))
+		BigInt(totalValueReceived) - BigInt(totalValueSent)
 	).toString();
 
 	return {

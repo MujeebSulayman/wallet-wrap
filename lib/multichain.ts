@@ -22,8 +22,7 @@ function delay(ms: number): Promise<void> {
 
 async function fetchChainData<T>(
 	chain: Chain,
-	params: Record<string, string>,
-	retryCount = 0
+	params: Record<string, string>
 ): Promise<T> {
 	// For V2 API, add chainid parameter if available
 	const queryParams = new URLSearchParams({
@@ -60,18 +59,6 @@ async function fetchChainData<T>(
 
 			// If result is a string, it's usually an error message
 			if (typeof result === 'string') {
-				// Check for rate limit errors - retry with exponential backoff
-				if (result.includes('rate limit') || result.includes('Max calls per sec')) {
-					if (retryCount < 3) {
-						const delayMs = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
-						console.log(`${chain.name}: Rate limit hit, retrying in ${delayMs}ms (attempt ${retryCount + 1}/3)`);
-						await delay(delayMs);
-						return fetchChainData<T>(chain, params, retryCount + 1);
-					}
-					console.warn(`${chain.name}: Rate limit exceeded after ${retryCount + 1} retries`);
-					return [] as T;
-				}
-
 				// Skip chains that require paid API plans
 				if (result.includes('Free API access is not supported')) {
 					console.log(`${chain.name}: Requires paid API plan, skipping`);
@@ -108,13 +95,6 @@ async function fetchChainData<T>(
 
 		return [] as T;
 	} catch (error: any) {
-		// Retry on network errors
-		if (retryCount < 2 && (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT')) {
-			const delayMs = Math.pow(2, retryCount) * 1000;
-			console.log(`${chain.name}: Network error, retrying in ${delayMs}ms`);
-			await delay(delayMs);
-			return fetchChainData<T>(chain, params, retryCount + 1);
-		}
 		console.error(`Error fetching from ${chain.name}:`, error.message || error);
 		// Return empty array on error to allow other chains to continue
 		return [] as T;

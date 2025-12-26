@@ -50,18 +50,18 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
   const chainStats = chains.reduce((acc, chainName) => {
     const chainTxs = transactions.filter(tx => tx.chain === chainName)
     const chainTokenTransfers = tokenTransfers.filter(tt => tt.chain === chainName)
-    
+
     const chainValueSent = chainTxs
       .filter(tx => tx.from.toLowerCase() === address.toLowerCase())
       .reduce((sum, tx) => sum + BigInt(tx.value || '0'), BigInt(0))
-    
+
     const chainValueReceived = chainTxs
       .filter(tx => tx.to.toLowerCase() === address.toLowerCase())
       .reduce((sum, tx) => sum + BigInt(tx.value || '0'), BigInt(0))
-    
+
     const chainGasSpent = chainTxs
       .reduce((sum, tx) => sum + BigInt(tx.gasUsed || '0') * BigInt(tx.gasPrice || '0'), BigInt(0))
-    
+
     acc[chainName] = {
       transactions: chainTxs.length,
       tokenTransfers: chainTokenTransfers.length,
@@ -88,11 +88,185 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
     { name: 'Failed', value: stats.failedTransactions },
   ]
 
+  // Build all slides array
+  const allSlides = [
+    // Slide 1: Welcome
+    <div key="welcome" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <div className="mb-6">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-6 shadow-2xl shadow-primary-500/30 mx-auto">
+            <span className="text-4xl font-black text-white">2025</span>
+          </div>
+        </div>
+        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-white tracking-tight">
+          Your Wallet Wrapped
+        </h1>
+        <p className="text-lg text-gray-400 font-mono">{shortenAddress(address, 12)}</p>
+      </div>
+    </div>,
+
+    // Slide 2: Chains Scanned
+    <div key="chains" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in w-full max-w-4xl">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">Scanned across</p>
+        <h1 className="text-5xl md:text-7xl font-extrabold mb-8 text-primary-500 tracking-tight">
+          {chains.length} {chains.length === 1 ? 'Chain' : 'Chains'}
+        </h1>
+        {chains.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+            {chains.map((chain, index) => {
+              const chainColor = CHAIN_COLORS[chain] || '#a855f7'
+              const chainIcon = CHAIN_ICONS[chain] || '●'
+              return (
+                <div
+                  key={index}
+                  className="px-5 py-2.5 bg-[#0f0f0f] border rounded-xl text-white font-semibold text-sm md:text-base hover:scale-105 transition-all flex items-center gap-2 shadow-lg"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    borderColor: `${chainColor}40`,
+                    backgroundColor: `${chainColor}10`
+                  }}
+                >
+                  <span className="text-lg">{chainIcon}</span>
+                  <span>{chain}</span>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-base text-gray-400 mt-4">No chain data available</p>
+        )}
+      </div>
+    </div>,
+
+    // Slide 3: Total Transactions
+    <div key="transactions" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You made</p>
+        <h1 className="text-7xl md:text-9xl font-extrabold mb-6 text-primary-500 tracking-tight">
+          {formatNumber(stats.totalTransactions)}
+        </h1>
+        <p className="text-2xl md:text-3xl font-bold mb-3 text-white">transactions</p>
+        <p className="text-base text-gray-400">across {stats.totalDaysActive} active days</p>
+      </div>
+    </div>,
+
+    // Slide 4: Success Rate
+    <div key="success" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">Your success rate</p>
+        <h1 className="text-7xl md:text-9xl font-extrabold mb-6 text-primary-500 tracking-tight">
+          {successRate}%
+        </h1>
+        <p className="text-lg text-gray-300">
+          {formatNumber(stats.successfulTransactions)} successful transactions
+        </p>
+      </div>
+    </div>,
+
+    // Slide 5: Most Active
+    <div key="active" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">Your most active day</p>
+        <h1 className="text-4xl md:text-6xl font-extrabold mb-6 text-primary-500 tracking-tight">
+          {stats.mostActiveDay}
+        </h1>
+        <p className="text-base text-gray-400 mt-8">Most active month: {stats.mostActiveMonth}</p>
+      </div>
+    </div>,
+
+    // Slide 6: Money Out
+    <div key="money-out" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-red-900/5 via-transparent to-red-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You sent</p>
+        <h1 className="text-5xl md:text-8xl font-extrabold mb-6 text-red-400 tracking-tight">
+          {formatEther(stats.totalValueSent)}
+        </h1>
+        <p className="text-2xl md:text-3xl font-bold mb-3 text-white">ETH out</p>
+        <p className="text-base text-gray-400">Total value sent across all chains</p>
+      </div>
+    </div>,
+
+    // Slide 7: Money In
+    <div key="money-in" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-green-900/5 via-transparent to-green-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You received</p>
+        <h1 className="text-5xl md:text-8xl font-extrabold mb-6 text-green-400 tracking-tight">
+          {formatEther(stats.totalValueReceived)}
+        </h1>
+        <p className="text-2xl md:text-3xl font-bold mb-3 text-white">ETH in</p>
+        <p className="text-base text-gray-400">Total value received across all chains</p>
+      </div>
+    </div>,
+
+    // Slide 8: Airdrops (conditional)
+    stats.airdrops && stats.airdrops.length > 0 ? (
+      <div key="airdrops" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/5 via-transparent to-yellow-900/5 pointer-events-none" />
+        <div className="relative mb-8 animate-fade-in w-full max-w-3xl">
+          <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You received</p>
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-8 text-yellow-400 tracking-tight">
+            {stats.airdrops.length} Airdrops
+          </h1>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
+            {stats.airdrops.slice(0, 6).map((airdrop, idx) => (
+              <div key={idx} className="bg-[#0f0f0f] border border-yellow-500/20 rounded-xl p-4">
+                <p className="text-lg font-bold text-yellow-400">{airdrop.symbol}</p>
+                <p className="text-sm text-gray-400">{airdrop.count} transfers</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ) : null,
+
+    // Slide 9: Contract Interactions
+    <div key="contracts" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/5 via-transparent to-blue-900/5 pointer-events-none" />
+      <div className="relative mb-8 animate-fade-in">
+        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You interacted with</p>
+        <h1 className="text-5xl md:text-8xl font-extrabold mb-6 text-blue-400 tracking-tight">
+          {formatNumber(stats.contractInteractions || 0)}
+        </h1>
+        <p className="text-2xl md:text-3xl font-bold mb-3 text-white">Smart Contracts</p>
+        <p className="text-base text-gray-400">{formatNumber(stats.uniqueContractsInteracted)} unique contracts</p>
+      </div>
+    </div>,
+  ]
+
+  // Filter out null slides
+  const validSlides = allSlides.filter((slide): slide is JSX.Element => slide !== null)
+  const totalSlides = validSlides.length // Full stats will be at this index
+
+  // Auto-advance slides
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (currentSlide < totalSlides) {
+        setCurrentSlide(currentSlide + 1)
+      }
+    }, 3500)
+    return () => clearTimeout(timer)
+  }, [currentSlide, totalSlides])
+
+  // Trigger confetti on slide changes
+  useEffect(() => {
+    if (currentSlide < totalSlides && currentSlide > 0) {
+      setShowConfetti(true)
+      const timer = setTimeout(() => setShowConfetti(false), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [currentSlide, totalSlides])
+
   const slides = [
     ...validSlides,
     // Last slide: Full Stats
-
-    // Slide 10: Full Stats
     <div key="full" className="min-h-screen py-16 px-4 bg-black">
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Header */}
@@ -146,7 +320,7 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
               <p className="text-2xl font-bold text-green-400">{formatEther(stats.totalValueReceived)} ETH</p>
               <p className="text-xs text-gray-500 mt-1">Total received</p>
             </div>
-            
+
             <div className="bg-[#0a0a0a] border border-red-500/20 rounded-xl p-6 hover:border-red-500/40 transition-all">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
@@ -249,15 +423,15 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
               {stats.airdrops.map((airdrop, index) => (
                 <div
                   key={index}
-                  className="bg-[#0a0a0a] border border-yellow-500/20 rounded-xl p-5 hover:border-yellow-500/40 transition-all text-center"
+                  className="bg-[#0a0a0a] border border-yellow-500/20 rounded-xl p-5 hover:border-yellow-500/40 transition-all text-center overflow-hidden min-h-[140px] flex flex-col"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mx-auto mb-3 flex-shrink-0">
                     <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <p className="font-bold text-lg text-yellow-400 mb-1">{airdrop.symbol}</p>
-                  <p className="text-xs text-gray-400">{airdrop.count} transfers</p>
+                  <p className="font-bold text-sm text-yellow-400 mb-1 line-clamp-2 break-words overflow-hidden">{airdrop.symbol}</p>
+                  <p className="text-xs text-gray-400 mt-auto">{airdrop.count} transfers</p>
                 </div>
               ))}
             </div>
@@ -277,7 +451,7 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                   <div
                     key={idx}
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
-                    style={{ 
+                    style={{
                       backgroundColor: `${CHAIN_COLORS[chain] || '#666'}20`,
                       border: `1px solid ${CHAIN_COLORS[chain] || '#666'}40`
                     }}
@@ -297,17 +471,17 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
               {chains.map((chain, index) => {
                 const chainData = chainStats[chain]
                 if (!chainData || chainData.transactions === 0) return null
-                
+
                 const chainColor = CHAIN_COLORS[chain] || '#a855f7'
                 const chainIcon = CHAIN_ICONS[chain] || '●'
                 const chainSuccessRate = chainData.transactions > 0
                   ? ((chainData.successful / chainData.transactions) * 100).toFixed(1)
                   : '0'
-                
+
                 const activityPercentage = stats.totalTransactions > 0
                   ? ((chainData.transactions / stats.totalTransactions) * 100).toFixed(1)
                   : '0'
-                
+
                 return (
                   <div
                     key={chain}
@@ -315,17 +489,17 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     {/* Gradient overlay */}
-                    <div 
+                    <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
                       style={{ background: `linear-gradient(135deg, ${chainColor}00, ${chainColor}40)` }}
                     />
-                    
+
                     <div className="relative">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div 
+                          <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg"
-                            style={{ 
+                            style={{
                               backgroundColor: `${chainColor}20`,
                               border: `2px solid ${chainColor}40`
                             }}
@@ -338,7 +512,7 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-3 mt-4">
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-400">Success Rate</span>
@@ -357,7 +531,7 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                           <span className="font-semibold text-white">{formatEther(chainData.gasSpent)} ETH</span>
                         </div>
                       </div>
-                      
+
                       {/* Progress bar */}
                       <div className="mt-4 pt-4 border-t border-[#1f1f1f]">
                         <div className="flex justify-between text-xs text-gray-500 mb-1">
@@ -365,9 +539,9 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                           <span>{activityPercentage}%</span>
                         </div>
                         <div className="h-1.5 bg-[#1f1f1f] rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full rounded-full transition-all"
-                            style={{ 
+                            style={{
                               width: `${activityPercentage}%`,
                               backgroundColor: chainColor
                             }}
@@ -530,23 +704,22 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
   ]
 
   return (
-    <div className={`relative min-h-screen bg-black ${currentSlide === 6 ? 'overflow-auto' : 'overflow-hidden'}`}>
+    <div className={`relative min-h-screen bg-black ${currentSlide === totalSlides ? 'overflow-auto' : 'overflow-hidden'}`}>
       {/* Confetti */}
       <Confetti trigger={showConfetti} duration={2000} />
-      
+
       {/* Background Audio */}
       <AudioPlayer autoPlay={true} loop={true} volume={0.2} />
 
       {/* Slide Navigation */}
       {currentSlide < totalSlides && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
-          {validSlides.slice(0, totalSlides + 1).map((_, index) => (
+          {validSlides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`h-1.5 rounded-full transition-all ${
-                currentSlide === index ? 'bg-primary-500 w-10' : 'bg-gray-700 w-2 hover:bg-gray-600'
-              }`}
+              className={`h-1.5 rounded-full transition-all ${currentSlide === index ? 'bg-primary-500 w-10' : 'bg-gray-700 w-2 hover:bg-gray-600'
+                }`}
             />
           ))}
         </div>
@@ -576,17 +749,16 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       {currentSlide === totalSlides ? (
         // Full stats page - render normally for scrolling
         <div className="relative">
-          {validSlides[validSlides.length - 1]}
+          {slides[slides.length - 1]}
         </div>
       ) : (
         // Other slides - use absolute positioning
         <div className="relative">
-          {validSlides.slice(0, totalSlides + 1).map((slide, index) => (
+          {validSlides.map((slide, index) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ${
-                currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
             >
               {slide}
             </div>
@@ -599,13 +771,13 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
 
 function StatCard({ title, value, subtitle, delay = 0, gradient = '' }: { title: string; value: string; subtitle: string; delay?: number; gradient?: string }) {
   return (
-    <div 
+    <div
       className={`bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-6 hover:border-primary-500/50 transition-all animate-fade-in group relative overflow-hidden shadow-lg ${gradient ? `bg-gradient-to-br ${gradient}` : ''}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-      
+
       <div className="relative">
         <p className="text-gray-400 text-sm mb-3 font-medium">{title}</p>
         <p className="text-4xl font-extrabold mb-2 text-white tracking-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">{value}</p>
