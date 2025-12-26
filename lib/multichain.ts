@@ -15,9 +15,15 @@ interface EtherscanResponse<T> {
 	result: T;
 }
 
+// Helper function to delay execution
+function delay(ms: number): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function fetchChainData<T>(
 	chain: Chain,
-	params: Record<string, string>
+	params: Record<string, string>,
+	retryCount = 0
 ): Promise<T> {
 	// For V2 API, add chainid parameter if available
 	const queryParams = new URLSearchParams({
@@ -52,31 +58,29 @@ async function fetchChainData<T>(
 			const message = response.data.message || '';
 			const result = response.data.result;
 
-			// Log the full error for debugging
-			console.error(`${chain.name} API Error:`, {
-				status: response.data.status,
-				message: message,
-				result: result,
-				url: chain.explorerApiUrl
-			});
-
 			// If result is a string, it's usually an error message
 			if (typeof result === 'string') {
-				console.error(`${chain.name} API Error Result: ${result}`);
-				
-				if (result.includes('rate limit') || result.includes('Invalid API Key')) {
+				// Check for rate limit errors - retry with exponential backoff
+				if (result.includes('rate limit') || result.includes('Max calls per sec')) {
+					if (retryCount < 3) {
+						const delayMs = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+						console.log(`${chain.name}: Rate limit hit, retrying in ${delayMs}ms (attempt ${retryCount + 1}/3)`);
+						await delay(delayMs);
+						return fetchChainData<T>(chain, params, retryCount + 1);
+					}
+					console.warn(`${chain.name}: Rate limit exceeded after ${retryCount + 1} retries`);
 					return [] as T;
 				}
-			}
 
-			if (
-				message.includes('rate limit') ||
-				message.includes('Invalid API Key') ||
-				message.includes('Max rate limit') ||
-				message === 'NOTOK'
-			) {
-				console.warn(`${chain.name}: ${message || result || 'API Error'}`);
-				return [] as T;
+				// Skip chains that require paid API plans
+				if (result.includes('Free API access is not supported')) {
+					console.log(`${chain.name}: Requires paid API plan, skipping`);
+					return [] as T;
+				}
+
+				if (result.includes('Invalid API Key')) {
+					return [] as T;
+				}
 			}
 
 			// "No transactions found" is a valid response
@@ -104,6 +108,13 @@ async function fetchChainData<T>(
 
 		return [] as T;
 	} catch (error: any) {
+		// Retry on network errors
+		if (retryCount < 2 && (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT')) {
+			const delayMs = Math.pow(2, retryCount) * 1000;
+			console.log(`${chain.name}: Network error, retrying in ${delayMs}ms`);
+			await delay(delayMs);
+			return fetchChainData<T>(chain, params, retryCount + 1);
+		}
 		console.error(`Error fetching from ${chain.name}:`, error.message || error);
 		// Return empty array on error to allow other chains to continue
 		return [] as T;
@@ -129,89 +140,106 @@ export async function fetchMultiChainWalletData(
 	const allTokenTransfers: TokenTransfer[] = [];
 	const successfulChains: string[] = [];
 
-	// Fetch data from all chains in parallel
-	const fetchPromises = chainsToFetch.map(async (chain) => {
-		try {
-			// Fetch normal transactions
-			const transactions = await fetchChainData<Transaction[]>(chain, {
-				module: 'account',
-				action: 'txlist',
-				address,
-				startblock: '0',
-				endblock: '99999999',
-				page: '1',
-				offset: '10000',
-				sort: 'asc',
-			});
+	// Process chains in batches to avoid rate limits (3 requests per second max)
+	// Process 2 chains at a time with 500ms delay between batches
+	const BATCH_SIZE = 2;
+	const DELAY_BETWEEN_BATCHES = 500; // 500ms = 2 requests per second, well under 3/sec limit
 
-			// Fetch token transfers
-			const tokenTransfers = await fetchChainData<TokenTransfer[]>(chain, {
-				module: 'account',
-				action: 'tokentx',
-				address,
-				startblock: '0',
-				endblock: '99999999',
-				page: '1',
-				offset: '10000',
-				sort: 'asc',
-			});
+	for (let i = 0; i < chainsToFetch.length; i += BATCH_SIZE) {
+		const batch = chainsToFetch.slice(i, i + BATCH_SIZE);
+		
+		// Process batch in parallel
+		const batchPromises = batch.map(async (chain) => {
+			try {
+				// Fetch normal transactions
+				const transactions = await fetchChainData<Transaction[]>(chain, {
+					module: 'account',
+					action: 'txlist',
+					address,
+					startblock: '0',
+					endblock: '99999999',
+					page: '1',
+					offset: '10000',
+					sort: 'asc',
+				});
 
-			// Add chain info to all transactions - no filtering
-			const transactionsWithChain = (
-				Array.isArray(transactions) ? transactions : []
-			)
-				.filter((tx) => {
-					// Only filter out completely invalid/null transactions
-					return tx && tx.hash;
-				})
-				.map((tx) => ({ ...tx, chain: chain.name }));
+				// Small delay between transaction and token transfer requests for same chain
+				await delay(400);
 
-			const tokenTransfersWithChain = (
-				Array.isArray(tokenTransfers) ? tokenTransfers : []
-			)
-				.filter((tx) => {
-					// Only filter out completely invalid/null transactions
-					return tx && tx.hash;
-				})
-				.map((tx) => ({ ...tx, chain: chain.name }));
+				// Fetch token transfers
+				const tokenTransfers = await fetchChainData<TokenTransfer[]>(chain, {
+					module: 'account',
+					action: 'tokentx',
+					address,
+					startblock: '0',
+					endblock: '99999999',
+					page: '1',
+					offset: '10000',
+					sort: 'asc',
+				});
 
-			// Log for debugging
-			if (transactions.length > 0 || tokenTransfers.length > 0) {
-				console.log(
-					`${chain.name}: Found ${transactions.length} transactions, ${tokenTransfers.length} token transfers`
-				);
-				console.log(
-					`${chain.name}: Processed ${transactionsWithChain.length} transactions, ${tokenTransfersWithChain.length} token transfers`
-				);
+				// Add chain info to all transactions - no filtering
+				const transactionsWithChain = (
+					Array.isArray(transactions) ? transactions : []
+				)
+					.filter((tx) => {
+						// Only filter out completely invalid/null transactions
+						return tx && tx.hash;
+					})
+					.map((tx) => ({ ...tx, chain: chain.name }));
+
+				const tokenTransfersWithChain = (
+					Array.isArray(tokenTransfers) ? tokenTransfers : []
+				)
+					.filter((tx) => {
+						// Only filter out completely invalid/null transactions
+						return tx && tx.hash;
+					})
+					.map((tx) => ({ ...tx, chain: chain.name }));
+
+				// Log for debugging
+				if (transactions.length > 0 || tokenTransfers.length > 0) {
+					console.log(
+						`${chain.name}: Found ${transactions.length} transactions, ${tokenTransfers.length} token transfers`
+					);
+					console.log(
+						`${chain.name}: Processed ${transactionsWithChain.length} transactions, ${tokenTransfersWithChain.length} token transfers`
+					);
+				}
+
+				if (
+					transactionsWithChain.length > 0 ||
+					tokenTransfersWithChain.length > 0
+				) {
+					successfulChains.push(chain.name);
+				}
+
+				return {
+					transactions: transactionsWithChain,
+					tokenTransfers: tokenTransfersWithChain,
+				};
+			} catch (error) {
+				console.error(`Error fetching data for ${chain.name}:`, error);
+				return {
+					transactions: [],
+					tokenTransfers: [],
+				};
 			}
+		});
 
-			if (
-				transactionsWithChain.length > 0 ||
-				tokenTransfersWithChain.length > 0
-			) {
-				successfulChains.push(chain.name);
-			}
+		const batchResults = await Promise.all(batchPromises);
+		
+		// Aggregate batch results
+		batchResults.forEach((result) => {
+			allTransactions.push(...result.transactions);
+			allTokenTransfers.push(...result.tokenTransfers);
+		});
 
-			return {
-				transactions: transactionsWithChain,
-				tokenTransfers: tokenTransfersWithChain,
-			};
-		} catch (error) {
-			console.error(`Error fetching data for ${chain.name}:`, error);
-			return {
-				transactions: [],
-				tokenTransfers: [],
-			};
+		// Delay before next batch (except for last batch)
+		if (i + BATCH_SIZE < chainsToFetch.length) {
+			await delay(DELAY_BETWEEN_BATCHES);
 		}
-	});
-
-	const results = await Promise.all(fetchPromises);
-
-	// Aggregate all results
-	results.forEach((result) => {
-		allTransactions.push(...result.transactions);
-		allTokenTransfers.push(...result.tokenTransfers);
-	});
+	}
 
 	// Sort by timestamp
 	allTransactions.sort((a, b) => parseInt(a.timeStamp) - parseInt(b.timeStamp));
