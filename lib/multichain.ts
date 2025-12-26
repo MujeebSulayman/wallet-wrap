@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Transaction, TokenTransfer, Chain } from '@/types';
-import { SUPPORTED_CHAINS } from './chains';
+import { SUPPORTED_CHAINS, getEnabledChains } from './chains';
 
 const API_KEY =
 	process.env.ETHERSCAN_API_KEY ||
@@ -19,10 +19,16 @@ async function fetchChainData<T>(
 	chain: Chain,
 	params: Record<string, string>
 ): Promise<T> {
+	// For V2 API, add chainid parameter if available
 	const queryParams = new URLSearchParams({
 		...params,
 		apikey: API_KEY,
 	});
+	
+	// Add chainid for V2 API (Base uses chainid=8453)
+	if (chain.chainId) {
+		queryParams.set('chainid', chain.chainId);
+	}
 
 	try {
 		const url = `${chain.explorerApiUrl}?${queryParams.toString()}`;
@@ -112,8 +118,12 @@ export async function fetchMultiChainWalletData(
 	tokenTransfers: TokenTransfer[];
 	chains: string[];
 }> {
-	// For now, only fetch from Base
-	const chainsToFetch = SUPPORTED_CHAINS.filter((c) => c.id === 'base');
+	// Fetch from selected chains or default to all enabled chains if none selected
+	const chainsToFetch = chainIds.length > 0
+		? (chainIds
+				.map((id) => SUPPORTED_CHAINS.find((c) => c.id === id))
+				.filter(Boolean) as Chain[])
+		: getEnabledChains();
 
 	const allTransactions: Transaction[] = [];
 	const allTokenTransfers: TokenTransfer[] = [];

@@ -1,93 +1,102 @@
-import { Chain } from '@/types'
+import { Chain } from '@/types';
 
 export const SUPPORTED_CHAINS: Chain[] = [
-  {
-    id: 'eth',
-    name: 'Ethereum',
-    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2',
-    explorerApiUrl: 'https://api.etherscan.io/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'polygon',
-    name: 'Polygon',
-    rpcUrl: 'https://polygon-mainnet.g.alchemy.com/v2',
-    explorerApiUrl: 'https://api.polygonscan.com/api',
-    nativeCurrency: 'MATIC',
-    enabled: true,
-  },
-  {
-    id: 'arbitrum',
-    name: 'Arbitrum',
-    rpcUrl: 'https://arb-mainnet.g.alchemy.com/v2',
-    explorerApiUrl: 'https://api.arbiscan.io/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'optimism',
-    name: 'Optimism',
-    rpcUrl: 'https://opt-mainnet.g.alchemy.com/v2',
-    explorerApiUrl: 'https://api-optimistic.etherscan.io/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'base',
-    name: 'Base',
-    rpcUrl: 'https://base-mainnet.g.alchemy.com/v2',
-    explorerApiUrl: 'https://api.basescan.org/v2/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'zksync',
-    name: 'zkSync Era',
-    rpcUrl: 'https://mainnet.era.zksync.io',
-    explorerApiUrl: 'https://api-era.zksync.network/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'linea',
-    name: 'Linea',
-    rpcUrl: 'https://linea-mainnet.infura.io/v3',
-    explorerApiUrl: 'https://api.lineascan.build/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'scroll',
-    name: 'Scroll',
-    rpcUrl: 'https://rpc.scroll.io',
-    explorerApiUrl: 'https://api.scrollscan.com/api',
-    nativeCurrency: 'ETH',
-    enabled: true,
-  },
-  {
-    id: 'avalanche',
-    name: 'Avalanche',
-    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-    explorerApiUrl: 'https://api.snowtrace.io/api',
-    nativeCurrency: 'AVAX',
-    enabled: true,
-  },
-  {
-    id: 'bsc',
-    name: 'BNB Chain',
-    rpcUrl: 'https://bsc-dataseed.binance.org',
-    explorerApiUrl: 'https://api.bscscan.com/api',
-    nativeCurrency: 'BNB',
-    enabled: true,
-  },
-]
+	{
+		id: 'eth',
+		name: 'Ethereum',
+		rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '1', // Ethereum mainnet chain ID
+	},
+	{
+		id: 'polygon',
+		name: 'Polygon',
+		rpcUrl: 'https://polygon-mainnet.g.alchemy.com/v2',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'MATIC',
+		enabled: true,
+		chainId: '137', // Polygon chain ID
+	},
+	{
+		id: 'arbitrum',
+		name: 'Arbitrum',
+		rpcUrl: 'https://arb-mainnet.g.alchemy.com/v2',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '42161', // Arbitrum chain ID
+	},
+	{
+		id: 'optimism',
+		name: 'Optimism',
+		rpcUrl: 'https://opt-mainnet.g.alchemy.com/v2',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '10', // Optimism chain ID
+	},
+	{
+		id: 'base',
+		name: 'Base',
+		rpcUrl: 'https://base-mainnet.g.alchemy.com/v2',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '8453', // Base chain ID for V2 API
+	},
+	{
+		id: 'zksync',
+		name: 'zkSync Era',
+		rpcUrl: 'https://mainnet.era.zksync.io',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '324', // zkSync Era chain ID
+	},
+	{
+		id: 'linea',
+		name: 'Linea',
+		rpcUrl: 'https://linea-mainnet.infura.io/v3',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '59144', // Linea chain ID
+	},
+	{
+		id: 'scroll',
+		name: 'Scroll',
+		rpcUrl: 'https://rpc.scroll.io',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'ETH',
+		enabled: true,
+		chainId: '534352', // Scroll chain ID
+	},
+	{
+		id: 'avalanche',
+		name: 'Avalanche',
+		rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'AVAX',
+		enabled: true,
+		chainId: '43114', // Avalanche C-Chain chain ID
+	},
+	{
+		id: 'bsc',
+		name: 'BNB Chain',
+		rpcUrl: 'https://bsc-dataseed.binance.org',
+		explorerApiUrl: 'https://api.etherscan.io/v2/api',
+		nativeCurrency: 'BNB',
+		enabled: true,
+		chainId: '56', // BNB Chain chain ID
+	},
+];
 
 export function getChainById(id: string): Chain | undefined {
-  return SUPPORTED_CHAINS.find((chain) => chain.id === id)
+	return SUPPORTED_CHAINS.find((chain) => chain.id === id);
 }
 
 export function getEnabledChains(): Chain[] {
-  return SUPPORTED_CHAINS.filter((chain) => chain.enabled)
+	return SUPPORTED_CHAINS.filter((chain) => chain.enabled);
 }
-

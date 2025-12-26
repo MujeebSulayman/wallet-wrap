@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeWalletData } from '@/lib/analyzer';
 import { fetchMultiChainWalletData } from '@/lib/multichain';
+import { getEnabledChains } from '@/lib/chains';
 
 export async function GET(request: NextRequest) {
 	const searchParams = request.nextUrl.searchParams;
 	const address = searchParams.get('address');
-	// Automatically fetch from all chains - no chain selection needed
-	const chains: string[] = [];
+	const chainsParam = searchParams.get('chains');
+	
+	// Default to all enabled chains if none specified
+	const chains: string[] = chainsParam 
+		? chainsParam.split(',').filter(Boolean) 
+		: getEnabledChains().map(chain => chain.id);
 
 	if (!address) {
 		return NextResponse.json(
@@ -25,6 +30,7 @@ export async function GET(request: NextRequest) {
 
 	try {
 		console.log(`Fetching data for address: ${address}`);
+		console.log(`Chains to fetch: ${chains.join(', ')}`);
 		const walletData = await fetchMultiChainWalletData(address, chains);
 		
 		console.log(`Total transactions found: ${walletData.transactions.length}`);

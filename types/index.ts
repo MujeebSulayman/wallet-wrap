@@ -58,4 +58,5 @@ export interface Chain {
 	explorerApiUrl: string;
 	nativeCurrency: string;
 	enabled: boolean;
+	chainId?: string; // For V2 API
 }
