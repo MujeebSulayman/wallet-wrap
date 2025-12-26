@@ -17,4 +17,3 @@ Place your background music file here as `ambient.mp3`
 ## Alternative:
 If you don't have a music file, the app will work without it - just won't play audio.
 
-

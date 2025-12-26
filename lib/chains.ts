@@ -37,7 +37,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
     id: 'base',
     name: 'Base',
     rpcUrl: 'https://base-mainnet.g.alchemy.com/v2',
-    explorerApiUrl: 'https://api.basescan.org/api',
+    explorerApiUrl: 'https://api.basescan.org/v2/api',
     nativeCurrency: 'ETH',
     enabled: true,
   },

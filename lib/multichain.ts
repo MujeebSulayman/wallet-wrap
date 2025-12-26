@@ -25,36 +25,66 @@ async function fetchChainData<T>(
 	});
 
 	try {
+		const url = `${chain.explorerApiUrl}?${queryParams.toString()}`;
+		console.log(`Fetching from ${chain.name}: ${url.replace(API_KEY, 'API_KEY_HIDDEN')}`);
+		
 		const response = await axios.get<EtherscanResponse<T>>(
-			`${chain.explorerApiUrl}?${queryParams.toString()}`,
+			url,
 			{ timeout: 15000 }
 		);
+		
+		console.log(`${chain.name} Response:`, {
+			status: response.data.status,
+			message: response.data.message,
+			resultType: Array.isArray(response.data.result) ? 'array' : typeof response.data.result,
+			resultLength: Array.isArray(response.data.result) ? response.data.result.length : 'N/A'
+		});
 
 		// Handle different response formats
-		if (response.data.status === '0') {
+		if (response.data.status === '0' || response.data.message === 'NOTOK') {
 			// Check for specific error messages
 			const message = response.data.message || '';
+			const result = response.data.result;
+
+			// Log the full error for debugging
+			console.error(`${chain.name} API Error:`, {
+				status: response.data.status,
+				message: message,
+				result: result,
+				url: chain.explorerApiUrl
+			});
+
+			// If result is a string, it's usually an error message
+			if (typeof result === 'string') {
+				console.error(`${chain.name} API Error Result: ${result}`);
+				
+				if (result.includes('rate limit') || result.includes('Invalid API Key')) {
+					return [] as T;
+				}
+			}
 
 			if (
 				message.includes('rate limit') ||
 				message.includes('Invalid API Key') ||
-				message.includes('Max rate limit')
+				message.includes('Max rate limit') ||
+				message === 'NOTOK'
 			) {
-				console.warn(`${chain.name}: ${message}`);
+				console.warn(`${chain.name}: ${message || result || 'API Error'}`);
 				return [] as T;
 			}
 
 			// "No transactions found" is a valid response
 			if (
 				message === 'No transactions found' ||
-				message === 'No record found'
+				message === 'No record found' ||
+				(typeof result === 'string' && result.includes('No transactions'))
 			) {
 				return [] as T;
 			}
 
 			// Log other errors but don't fail
-			if (message) {
-				console.warn(`${chain.name} API message: ${message}`);
+			if (message || result) {
+				console.warn(`${chain.name} API message: ${message || result}`);
 			}
 
 			return [] as T;
