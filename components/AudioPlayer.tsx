@@ -10,59 +10,103 @@ interface AudioPlayerProps {
 }
 
 export default function AudioPlayer({ 
-  src = '/audio/ambient.mp3', 
+  src = '/audio/loopazon-1766746550-blue-midnight-keys.wav', 
   autoPlay = true, 
   loop = true,
-  volume = 0.3 
+  volume = 0.2 
 }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [hasUserInteracted, setHasUserInteracted] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    audio.volume = volume
+    audio.volume = isMuted ? 0 : volume
 
-    // Handle audio load errors gracefully
-    const handleError = () => {
+    // Handle audio load errors
+    const handleError = (e: any) => {
+      console.log('Audio error:', e)
       setIsPlaying(false)
-      // Audio file not found or failed to load - silently fail
     }
 
-    audio.addEventListener('error', handleError)
-
-    if (autoPlay) {
-      // Try to play, but handle autoplay restrictions
-      const playPromise = audio.play()
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true)
-          })
-          .catch(() => {
-            // Autoplay was prevented - user interaction required
-            setIsPlaying(false)
-          })
+    // Handle successful load
+    const handleCanPlay = () => {
+      console.log('Audio can play')
+      if (autoPlay && hasUserInteracted) {
+        audio.play().catch(() => {
+          setIsPlaying(false)
+        })
       }
     }
 
+    // Handle play/pause events
+    const handlePlay = () => setIsPlaying(true)
+    const handlePause = () => setIsPlaying(false)
+    const handleEnded = () => setIsPlaying(false)
+
+    audio.addEventListener('error', handleError)
+    audio.addEventListener('canplay', handleCanPlay)
+    audio.addEventListener('play', handlePlay)
+    audio.addEventListener('pause', handlePause)
+    audio.addEventListener('ended', handleEnded)
+
+    // Try to load audio
+    audio.load()
+
     return () => {
       audio.removeEventListener('error', handleError)
+      audio.removeEventListener('canplay', handleCanPlay)
+      audio.removeEventListener('play', handlePlay)
+      audio.removeEventListener('pause', handlePause)
+      audio.removeEventListener('ended', handleEnded)
     }
-  }, [autoPlay, volume])
+  }, [autoPlay, volume, isMuted, hasUserInteracted])
+
+  // Enable audio after user interaction
+  useEffect(() => {
+    const enableAudio = () => {
+      setHasUserInteracted(true)
+      const audio = audioRef.current
+      if (audio && autoPlay) {
+        audio.play().then(() => {
+          setIsPlaying(true)
+        }).catch(() => {
+          setIsPlaying(false)
+        })
+      }
+    }
+
+    // Listen for any user interaction
+    document.addEventListener('click', enableAudio, { once: true })
+    document.addEventListener('keydown', enableAudio, { once: true })
+    document.addEventListener('touchstart', enableAudio, { once: true })
+
+    return () => {
+      document.removeEventListener('click', enableAudio)
+      document.removeEventListener('keydown', enableAudio)
+      document.removeEventListener('touchstart', enableAudio)
+    }
+  }, [autoPlay])
 
   const togglePlay = () => {
     const audio = audioRef.current
     if (!audio) return
 
+    setHasUserInteracted(true)
+
     if (isPlaying) {
       audio.pause()
       setIsPlaying(false)
     } else {
-      audio.play()
-      setIsPlaying(true)
+      audio.play().then(() => {
+        setIsPlaying(true)
+      }).catch((error) => {
+        console.error('Error playing audio:', error)
+        setIsPlaying(false)
+      })
     }
   }
 
@@ -90,9 +134,13 @@ export default function AudioPlayer({
       <div className="fixed bottom-8 right-8 z-50 flex gap-2">
         <button
           onClick={togglePlay}
-          className="w-12 h-12 rounded-lg bg-[#0a0a0a] border border-[#1a1a1a] hover:border-primary-500/50 transition-all flex items-center justify-center text-gray-300"
+          className="w-12 h-12 rounded-lg bg-[#0a0a0a] border border-[#1a1a1a] hover:border-primary-500/50 transition-all flex items-center justify-center text-gray-300 relative group"
           aria-label={isPlaying ? 'Pause' : 'Play'}
+          title={isPlaying ? 'Pause music' : 'Play music'}
         >
+          {!hasUserInteracted && (
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full animate-pulse"></span>
+          )}
           {isPlaying ? (
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />

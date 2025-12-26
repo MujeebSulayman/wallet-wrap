@@ -41,6 +41,13 @@ export interface WalletStats {
 	topContracts: { address: string; count: number }[];
 	averageGasPrice: string;
 	totalDaysActive: number;
+	// New fields
+	totalTokenValueReceived: string;
+	totalTokenValueSent: string;
+	airdrops: { symbol: string; value: string; count: number }[];
+	contractInteractions: number;
+	largestTransaction: { value: string; type: 'in' | 'out'; hash: string } | null;
+	netFlow: string; // received - sent
 }
 
 export interface WalletData {

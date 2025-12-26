@@ -74,15 +74,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
     return acc
   }, {} as Record<string, any>)
 
-  // Trigger confetti on slide changes
-  useEffect(() => {
-    if (currentSlide < 6 && currentSlide > 0) {
-      setShowConfetti(true)
-      const timer = setTimeout(() => setShowConfetti(false), 500)
-      return () => clearTimeout(timer)
-    }
-  }, [currentSlide])
-
   const chartData = stats.transactionsByMonth.map((item) => ({
     month: item.month.split(' ')[0],
     count: item.count,
@@ -97,121 +88,11 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
     { name: 'Failed', value: stats.failedTransactions },
   ]
 
-  // Auto-advance slides
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (currentSlide < 6) {
-        setCurrentSlide(currentSlide + 1)
-      }
-    }, 3500)
-    return () => clearTimeout(timer)
-  }, [currentSlide])
-
   const slides = [
-    // Slide 1: Welcome
-    <div key="welcome" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
-      <div className="relative mb-8 animate-fade-in">
-        <div className="mb-6">
-          <div className="inline-block w-24 h-24 rounded-3xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-6 shadow-2xl shadow-primary-500/30">
-            <span className="text-4xl font-black text-white">2025</span>
-          </div>
-        </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-white tracking-tight">
-          Your Wallet Wrapped
-        </h1>
-        <p className="text-lg text-gray-400 font-mono">{shortenAddress(address, 12)}</p>
-      </div>
-    </div>,
+    ...validSlides,
+    // Last slide: Full Stats
 
-    // Slide 2: Chains Scanned
-    <div key="chains" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
-      <div className="relative mb-8 animate-fade-in w-full max-w-4xl">
-        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">Scanned across</p>
-        <h1 className="text-5xl md:text-7xl font-extrabold mb-8 text-primary-500 tracking-tight">
-          {chains.length} {chains.length === 1 ? 'Chain' : 'Chains'}
-        </h1>
-        {chains.length > 0 ? (
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-            {chains.map((chain, index) => {
-              const chainColor = CHAIN_COLORS[chain] || '#a855f7'
-              const chainIcon = CHAIN_ICONS[chain] || '●'
-              return (
-                <div
-                  key={index}
-                  className="px-5 py-2.5 bg-[#0f0f0f] border rounded-xl text-white font-semibold text-sm md:text-base hover:scale-105 transition-all flex items-center gap-2 shadow-lg"
-                  style={{ 
-                    animationDelay: `${index * 100}ms`,
-                    borderColor: `${chainColor}40`,
-                    backgroundColor: `${chainColor}10`
-                  }}
-                >
-                  <span className="text-lg">{chainIcon}</span>
-                  <span>{chain}</span>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <p className="text-base text-gray-400 mt-4">No chain data available</p>
-        )}
-      </div>
-    </div>,
-
-    // Slide 3: Total Transactions
-    <div key="transactions" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
-      <div className="relative mb-8 animate-fade-in">
-        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You made</p>
-        <h1 className="text-7xl md:text-9xl font-extrabold mb-6 text-primary-500 tracking-tight">
-          {formatNumber(stats.totalTransactions)}
-        </h1>
-        <p className="text-2xl md:text-3xl font-bold mb-3 text-white">transactions</p>
-        <p className="text-base text-gray-400">across {stats.totalDaysActive} active days</p>
-      </div>
-    </div>,
-
-    // Slide 4: Success Rate
-    <div key="success" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
-      <div className="relative mb-8 animate-fade-in">
-        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">Your success rate</p>
-        <h1 className="text-7xl md:text-9xl font-extrabold mb-6 text-primary-500 tracking-tight">
-          {successRate}%
-        </h1>
-        <p className="text-lg text-gray-300">
-          {formatNumber(stats.successfulTransactions)} successful transactions
-        </p>
-      </div>
-    </div>,
-
-    // Slide 5: Most Active
-    <div key="active" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
-      <div className="relative mb-8 animate-fade-in">
-        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">Your most active day</p>
-        <h1 className="text-4xl md:text-6xl font-extrabold mb-6 text-primary-500 tracking-tight">
-          {stats.mostActiveDay}
-        </h1>
-        <p className="text-base text-gray-400 mt-8">Most active month: {stats.mostActiveMonth}</p>
-      </div>
-    </div>,
-
-    // Slide 6: Value
-    <div key="value" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
-      <div className="relative mb-8 animate-fade-in">
-        <p className="text-lg md:text-xl text-gray-400 mb-10 font-light">You moved</p>
-        <h1 className="text-5xl md:text-8xl font-extrabold mb-6 text-primary-500 tracking-tight">
-          {formatEther(stats.totalValueSent)}
-        </h1>
-        <p className="text-2xl md:text-3xl font-bold mb-3 text-white">ETH sent</p>
-        <p className="text-base text-gray-400">and received {formatEther(stats.totalValueReceived)} ETH</p>
-      </div>
-    </div>,
-
-    // Slide 7: Full Stats
+    // Slide 10: Full Stats
     <div key="full" className="min-h-screen py-16 px-4 bg-black">
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Header */}
@@ -246,6 +127,69 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         </div>
 
+        {/* Financial Overview */}
+        <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-2xl">
+          <h3 className="text-3xl font-extrabold mb-6 text-white tracking-tight flex items-center gap-3">
+            <span className="w-1 h-8 bg-gradient-to-b from-primary-500 to-primary-700 rounded-full"></span>
+            Financial Overview
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#0a0a0a] border border-green-500/20 rounded-xl p-6 hover:border-green-500/40 transition-all">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-400">Money In</p>
+              </div>
+              <p className="text-2xl font-bold text-green-400">{formatEther(stats.totalValueReceived)} ETH</p>
+              <p className="text-xs text-gray-500 mt-1">Total received</p>
+            </div>
+            
+            <div className="bg-[#0a0a0a] border border-red-500/20 rounded-xl p-6 hover:border-red-500/40 transition-all">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-400">Money Out</p>
+              </div>
+              <p className="text-2xl font-bold text-red-400">{formatEther(stats.totalValueSent)} ETH</p>
+              <p className="text-xs text-gray-500 mt-1">Total sent</p>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-primary-500/20 rounded-xl p-6 hover:border-primary-500/40 transition-all">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-primary-500/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-400">Net Flow</p>
+              </div>
+              <p className={`text-2xl font-bold ${BigInt(stats.netFlow || '0') >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {BigInt(stats.netFlow || '0') >= 0 ? '+' : ''}{formatEther(stats.netFlow || '0')} ETH
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Received - Sent</p>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-orange-500/20 rounded-xl p-6 hover:border-orange-500/40 transition-all">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-400">Gas Spent</p>
+              </div>
+              <p className="text-2xl font-bold text-orange-400">{formatEther(stats.totalGasSpent)} ETH</p>
+              <p className="text-xs text-gray-500 mt-1">Total fees</p>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <StatCard
@@ -263,34 +207,62 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
             gradient="from-green-500/20 to-emerald-500/20"
           />
           <StatCard
-            title="Total Gas Spent"
-            value={`${formatEther(stats.totalGasSpent)} ETH`}
-            subtitle={`Avg: ${formatGwei(stats.averageGasPrice)} Gwei`}
+            title="Contract Interactions"
+            value={formatNumber(stats.contractInteractions || 0)}
+            subtitle={`${formatNumber(stats.uniqueContractsInteracted)} unique`}
             delay={200}
-            gradient="from-orange-500/20 to-red-500/20"
-          />
-          <StatCard
-            title="Value Sent"
-            value={`${formatEther(stats.totalValueSent)} ETH`}
-            subtitle="Total outgoing"
-            delay={300}
-            gradient="from-purple-500/20 to-pink-500/20"
-          />
-          <StatCard
-            title="Value Received"
-            value={`${formatEther(stats.totalValueReceived)} ETH`}
-            subtitle="Total incoming"
-            delay={400}
-            gradient="from-cyan-500/20 to-blue-500/20"
+            gradient="from-blue-500/20 to-cyan-500/20"
           />
           <StatCard
             title="Tokens Interacted"
             value={formatNumber(stats.uniqueTokensInteracted)}
             subtitle={`${formatNumber(stats.uniqueContractsInteracted)} contracts`}
-            delay={500}
+            delay={300}
             gradient="from-indigo-500/20 to-purple-500/20"
           />
+          {stats.largestTransaction && (
+            <StatCard
+              title="Largest Transaction"
+              value={formatEther(stats.largestTransaction.value)}
+              subtitle={stats.largestTransaction.type === 'in' ? 'Received' : 'Sent'}
+              delay={400}
+              gradient="from-yellow-500/20 to-orange-500/20"
+            />
+          )}
+          <StatCard
+            title="Average Gas Price"
+            value={formatGwei(stats.averageGasPrice)}
+            subtitle="Per transaction"
+            delay={500}
+            gradient="from-purple-500/20 to-pink-500/20"
+          />
         </div>
+
+        {/* Airdrops Section */}
+        {stats.airdrops && stats.airdrops.length > 0 && (
+          <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-xl">
+            <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+              <span className="w-1 h-8 bg-gradient-to-b from-yellow-500 to-yellow-700 rounded-full"></span>
+              Airdrops Received
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {stats.airdrops.map((airdrop, index) => (
+                <div
+                  key={index}
+                  className="bg-[#0a0a0a] border border-yellow-500/20 rounded-xl p-5 hover:border-yellow-500/40 transition-all text-center"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="font-bold text-lg text-yellow-400 mb-1">{airdrop.symbol}</p>
+                  <p className="text-xs text-gray-400">{airdrop.count} transfers</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Chain Breakdown */}
         {chains.length > 0 && (
@@ -566,9 +538,9 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       <AudioPlayer autoPlay={true} loop={true} volume={0.2} />
 
       {/* Slide Navigation */}
-      {currentSlide < 6 && (
+      {currentSlide < totalSlides && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
-          {slides.slice(0, 6).map((_, index) => (
+          {validSlides.slice(0, totalSlides + 1).map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
@@ -581,9 +553,9 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       )}
 
       {/* Skip to full view button */}
-      {currentSlide < 6 && (
+      {currentSlide < totalSlides && (
         <button
-          onClick={() => setCurrentSlide(6)}
+          onClick={() => setCurrentSlide(totalSlides)}
           className="fixed top-8 right-8 z-50 px-5 py-2.5 bg-[#0f0f0f] border border-[#1f1f1f] rounded-xl hover:border-primary-500/50 transition-all text-sm text-gray-300 font-medium"
         >
           View Full Report
@@ -591,7 +563,7 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       )}
 
       {/* Back button for full stats */}
-      {currentSlide === 6 && (
+      {currentSlide === totalSlides && (
         <button
           onClick={() => setCurrentSlide(0)}
           className="fixed top-8 right-8 z-50 px-5 py-2.5 bg-[#0f0f0f] border border-[#1f1f1f] rounded-xl hover:border-primary-500/50 transition-all text-sm text-gray-300 font-medium"
@@ -601,15 +573,15 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       )}
 
       {/* Slides */}
-      {currentSlide === 6 ? (
+      {currentSlide === totalSlides ? (
         // Full stats page - render normally for scrolling
         <div className="relative">
-          {slides[6]}
+          {validSlides[validSlides.length - 1]}
         </div>
       ) : (
         // Other slides - use absolute positioning
         <div className="relative">
-          {slides.slice(0, 6).map((slide, index) => (
+          {validSlides.slice(0, totalSlides + 1).map((slide, index) => (
             <div
               key={index}
               className={`absolute inset-0 transition-opacity duration-1000 ${

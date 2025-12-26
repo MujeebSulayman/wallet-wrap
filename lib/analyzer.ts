@@ -151,6 +151,116 @@ export function analyzeWalletData(
 		.sort((a, b) => b.count - a.count)
 		.slice(0, 10);
 
+	// Token value calculations
+	const tokenValueReceived = tokenTransfers
+		.filter((tt) => tt.to.toLowerCase() === walletAddressLower)
+		.reduce((sum, tt) => {
+			try {
+				const decimals = parseInt(tt.tokenDecimal || '18');
+				const value = BigInt(tt.value || '0');
+				// Convert to standard 18 decimals for comparison (approximate)
+				return sum + value;
+			} catch {
+				return sum;
+			}
+		}, BigInt(0))
+		.toString();
+
+	const tokenValueSent = tokenTransfers
+		.filter((tt) => tt.from.toLowerCase() === walletAddressLower)
+		.reduce((sum, tt) => {
+			try {
+				const value = BigInt(tt.value || '0');
+				return sum + value;
+			} catch {
+				return sum;
+			}
+		}, BigInt(0))
+		.toString();
+
+	// Detect airdrops (token transfers received where from is null/zero address or no corresponding send)
+	const zeroAddress = '0x0000000000000000000000000000000000000000';
+	const airdropMap = new Map<
+		string,
+		{ value: bigint; count: number; symbol: string }
+	>();
+
+	tokenTransfers
+		.filter((tt) => {
+			const toMatch = tt.to.toLowerCase() === walletAddressLower;
+			const fromZero = tt.from.toLowerCase() === zeroAddress;
+			// Check if there's no corresponding send from this wallet
+			const hasNoSend = !tokenTransfers.some(
+				(send) =>
+					send.from.toLowerCase() === walletAddressLower &&
+					send.contractAddress.toLowerCase() ===
+						tt.contractAddress.toLowerCase() &&
+					send.hash !== tt.hash
+			);
+			return toMatch && (fromZero || hasNoSend);
+		})
+		.forEach((tt) => {
+			const key = tt.contractAddress.toLowerCase();
+			const existing = airdropMap.get(key) || {
+				value: BigInt(0),
+				count: 0,
+				symbol: tt.tokenSymbol,
+			};
+			airdropMap.set(key, {
+				value: existing.value + BigInt(tt.value || '0'),
+				count: existing.count + 1,
+				symbol: tt.tokenSymbol,
+			});
+		});
+
+	const airdrops = Array.from(airdropMap.entries())
+		.map(([_, data]) => ({
+			symbol: data.symbol,
+			value: data.value.toString(),
+			count: data.count,
+		}))
+		.sort((a, b) => {
+			const valA = BigInt(a.value);
+			const valB = BigInt(b.value);
+			return valA > valB ? -1 : valA < valB ? 1 : 0;
+		})
+		.slice(0, 10);
+
+	// Contract interactions (transactions to contracts, not simple transfers)
+	const contractInteractions = transactions.filter((tx) => {
+		const to = tx.to.toLowerCase();
+		// Exclude simple ETH transfers (no methodId or functionName)
+		return tx.methodId && tx.methodId !== '0x' && tx.methodId !== '';
+	}).length;
+
+	// Largest transaction
+	let largestTransaction: {
+		value: string;
+		type: 'in' | 'out';
+		hash: string;
+	} | null = null;
+	let largestValue = BigInt(0);
+
+	transactions.forEach((tx) => {
+		const value = BigInt(tx.value || '0');
+		if (value > largestValue) {
+			largestValue = value;
+			const isIn = tx.to.toLowerCase() === walletAddressLower;
+			largestTransaction = {
+				value: value.toString(),
+				type: isIn ? 'in' : 'out',
+				hash: tx.hash,
+			};
+		}
+	});
+
+	// Net flow (received - sent)
+	const netFlow = (
+		BigInt(totalValueReceived) +
+		BigInt(tokenValueReceived) -
+		(BigInt(totalValueSent) + BigInt(tokenValueSent))
+	).toString();
+
 	return {
 		totalTransactions,
 		successfulTransactions,
@@ -169,5 +279,11 @@ export function analyzeWalletData(
 		topContracts,
 		averageGasPrice,
 		totalDaysActive: activeDays.size,
+		totalTokenValueReceived: tokenValueReceived,
+		totalTokenValueSent: tokenValueSent,
+		airdrops,
+		contractInteractions,
+		largestTransaction,
+		netFlow,
 	};
 }
