@@ -41,7 +41,6 @@ export interface WalletStats {
 	topContracts: { address: string; count: number }[];
 	averageGasPrice: string;
 	totalDaysActive: number;
-	// New fields
 	totalTokenValueReceived: string;
 	totalTokenValueSent: string;
 	airdrops: { symbol: string; value: string; count: number }[];
@@ -65,5 +64,5 @@ export interface Chain {
 	explorerApiUrl: string;
 	nativeCurrency: string;
 	enabled: boolean;
-	chainId?: string; // For V2 API
+	chainId?: string;
 }

@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
 	const address = searchParams.get('address');
 	const chainsParam = searchParams.get('chains');
 	
-	// Default to all enabled chains if none specified
 	const chains: string[] = chainsParam 
 		? chainsParam.split(',').filter(Boolean) 
 		: getEnabledChains().map(chain => chain.id);
@@ -20,7 +19,6 @@ export async function GET(request: NextRequest) {
 		);
 	}
 
-	// Validate Ethereum address format
 	if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
 		return NextResponse.json(
 			{ error: 'Invalid Ethereum address format' },
@@ -37,7 +35,6 @@ export async function GET(request: NextRequest) {
 		console.log(`Total token transfers found: ${walletData.tokenTransfers.length}`);
 		console.log(`Chains with data: ${walletData.chains.join(', ') || 'None'}`);
 		
-		// Analyze all transactions - no date filtering
 		const stats = analyzeWalletData(walletData, address);
 
 		return NextResponse.json({

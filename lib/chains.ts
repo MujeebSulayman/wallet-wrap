@@ -8,7 +8,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '1', // Ethereum mainnet chain ID
+		chainId: '1',
 	},
 	{
 		id: 'polygon',
@@ -17,7 +17,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'MATIC',
 		enabled: true,
-		chainId: '137', // Polygon chain ID
+		chainId: '137',
 	},
 	{
 		id: 'arbitrum',
@@ -26,7 +26,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '42161', // Arbitrum chain ID
+		chainId: '42161',
 	},
 	{
 		id: 'optimism',
@@ -35,7 +35,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '10', // Optimism chain ID
+		chainId: '10',
 	},
 	{
 		id: 'base',
@@ -44,7 +44,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '8453', // Base chain ID for V2 API
+		chainId: '8453',
 	},
 	{
 		id: 'zksync',
@@ -53,7 +53,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '324', // zkSync Era chain ID
+		chainId: '324',
 	},
 	{
 		id: 'linea',
@@ -62,7 +62,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '59144', // Linea chain ID
+		chainId: '59144',
 	},
 	{
 		id: 'scroll',
@@ -71,7 +71,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'ETH',
 		enabled: true,
-		chainId: '534352', // Scroll chain ID
+		chainId: '534352',
 	},
 	{
 		id: 'avalanche',
@@ -80,7 +80,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'AVAX',
 		enabled: true,
-		chainId: '43114', // Avalanche C-Chain chain ID
+		chainId: '43114',
 	},
 	{
 		id: 'bsc',
@@ -89,7 +89,7 @@ export const SUPPORTED_CHAINS: Chain[] = [
 		explorerApiUrl: 'https://api.etherscan.io/v2/api',
 		nativeCurrency: 'BNB',
 		enabled: true,
-		chainId: '56', // BNB Chain chain ID
+		chainId: '56',
 	},
 ];
 

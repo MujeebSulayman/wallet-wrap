@@ -44,7 +44,6 @@ export default function Confetti({ trigger, duration = 3000 }: ConfettiProps) {
       })
     }, 200)
 
-    // Burst on trigger
     myConfetti({
       particleCount: 100,
       spread: 70,

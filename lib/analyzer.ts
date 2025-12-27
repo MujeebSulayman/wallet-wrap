@@ -13,14 +13,12 @@ export function analyzeWalletData(
 	const { transactions, tokenTransfers } = data;
 	const walletAddressLower = walletAddress.toLowerCase();
 
-	// Basic transaction stats
 	const totalTransactions = transactions.length;
 	const successfulTransactions = transactions.filter(
 		(tx) => tx.isError === '0'
 	).length;
 	const failedTransactions = totalTransactions - successfulTransactions;
 
-	// Value calculations (in Wei, convert to ETH)
 	const totalValueSent = transactions
 		.filter((tx) => tx.from.toLowerCase() === walletAddressLower)
 		.reduce((sum, tx) => sum + BigInt(tx.value || '0'), BigInt(0))
@@ -31,7 +29,6 @@ export function analyzeWalletData(
 		.reduce((sum, tx) => sum + BigInt(tx.value || '0'), BigInt(0))
 		.toString();
 
-	// Gas calculations
 	const totalGasSpent = transactions
 		.reduce(
 			(sum, tx) => sum + BigInt(tx.gasUsed || '0') * BigInt(tx.gasPrice || '0'),
@@ -49,7 +46,6 @@ export function analyzeWalletData(
 			  ).toString()
 			: '0';
 
-	// Token stats
 	const uniqueTokens = new Set(
 		tokenTransfers.map((tt) => tt.contractAddress.toLowerCase())
 	);
@@ -57,7 +53,6 @@ export function analyzeWalletData(
 		transactions.map((tx) => tx.to.toLowerCase())
 	);
 
-	// Date analysis
 	const transactionsByDate = new Map<string, number>();
 	const transactionsByMonth = new Map<string, number>();
 	const activeDays = new Set<string>();
@@ -78,11 +73,9 @@ export function analyzeWalletData(
 			);
 			activeDays.add(dateStr);
 		} catch (e) {
-			// Skip invalid dates
 		}
 	});
 
-	// Most active day
 	let mostActiveDay = '';
 	let maxDayCount = 0;
 	transactionsByDate.forEach((count, date) => {
@@ -92,7 +85,6 @@ export function analyzeWalletData(
 		}
 	});
 
-	// Most active month
 	let mostActiveMonth = '';
 	let maxMonthCount = 0;
 	transactionsByMonth.forEach((count, month) => {
@@ -102,7 +94,6 @@ export function analyzeWalletData(
 		}
 	});
 
-	// Transactions by month for chart
 	const transactionsByMonthArray = Array.from(transactionsByMonth.entries())
 		.map(([month, count]) => ({ month, count }))
 		.sort((a, b) => {
@@ -111,7 +102,6 @@ export function analyzeWalletData(
 			return dateA.getTime() - dateB.getTime();
 		});
 
-	// Top tokens
 	const tokenCounts = new Map<
 		string,
 		{ count: number; value: bigint; symbol: string }
@@ -139,7 +129,6 @@ export function analyzeWalletData(
 		.sort((a, b) => b.count - a.count)
 		.slice(0, 10);
 
-	// Top contracts
 	const contractCounts = new Map<string, number>();
 	transactions.forEach((tx) => {
 		const key = tx.to.toLowerCase();
@@ -151,14 +140,12 @@ export function analyzeWalletData(
 		.sort((a, b) => b.count - a.count)
 		.slice(0, 10);
 
-	// Token value calculations
 	const tokenValueReceived = tokenTransfers
 		.filter((tt) => tt.to.toLowerCase() === walletAddressLower)
 		.reduce((sum, tt) => {
 			try {
 				const decimals = parseInt(tt.tokenDecimal || '18');
 				const value = BigInt(tt.value || '0');
-				// Convert to standard 18 decimals for comparison (approximate)
 				return sum + value;
 			} catch {
 				return sum;
@@ -178,7 +165,6 @@ export function analyzeWalletData(
 		}, BigInt(0))
 		.toString();
 
-	// Detect airdrops (token transfers received where from is null/zero address or no corresponding send)
 	const zeroAddress = '0x0000000000000000000000000000000000000000';
 	const airdropMap = new Map<
 		string,
@@ -189,7 +175,6 @@ export function analyzeWalletData(
 		.filter((tt) => {
 			const toMatch = tt.to.toLowerCase() === walletAddressLower;
 			const fromZero = tt.from.toLowerCase() === zeroAddress;
-			// Check if there's no corresponding send from this wallet
 			const hasNoSend = !tokenTransfers.some(
 				(send) =>
 					send.from.toLowerCase() === walletAddressLower &&
@@ -226,14 +211,11 @@ export function analyzeWalletData(
 		})
 		.slice(0, 10);
 
-	// Contract interactions (transactions to contracts, not simple transfers)
 	const contractInteractions = transactions.filter((tx) => {
 		const to = tx.to.toLowerCase();
-		// Exclude simple ETH transfers (no methodId or functionName)
 		return tx.methodId && tx.methodId !== '0x' && tx.methodId !== '';
 	}).length;
 
-	// Largest transaction
 	let largestTransaction: {
 		value: string;
 		type: 'in' | 'out';
@@ -254,8 +236,6 @@ export function analyzeWalletData(
 		}
 	});
 
-	// Net flow (received - sent) - only native ETH, not tokens
-	// Token values have different decimals and shouldn't be mixed with ETH
 	const netFlow = (
 		BigInt(totalValueReceived) - BigInt(totalValueSent)
 	).toString();

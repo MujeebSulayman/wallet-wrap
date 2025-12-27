@@ -4,7 +4,6 @@ import { Transaction, TokenTransfer } from '@/types'
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || 'YourApiKeyToken'
 const ETHERSCAN_BASE_URL = 'https://api.etherscan.io/api'
 
-// Get start and end timestamps for 2025
 const YEAR_2025_START = Math.floor(new Date('2025-01-01').getTime() / 1000)
 const YEAR_2025_END = Math.floor(new Date('2025-12-31T23:59:59').getTime() / 1000)
 
@@ -35,7 +34,6 @@ async function fetchEtherscanData<T>(
 
 export async function fetchWalletData(address: string) {
   try {
-    // Fetch normal transactions
     const transactions = await fetchEtherscanData<Transaction[]>({
       module: 'account',
       action: 'txlist',
@@ -47,7 +45,6 @@ export async function fetchWalletData(address: string) {
       sort: 'asc',
     })
 
-    // Fetch token transfers
     const tokenTransfers = await fetchEtherscanData<TokenTransfer[]>({
       module: 'account',
       action: 'tokentx',
@@ -59,7 +56,6 @@ export async function fetchWalletData(address: string) {
       sort: 'asc',
     })
 
-    // Filter for 2025 only
     const transactions2025 = transactions.filter((tx) => {
       const timestamp = parseInt(tx.timeStamp)
       return timestamp >= YEAR_2025_START && timestamp <= YEAR_2025_END

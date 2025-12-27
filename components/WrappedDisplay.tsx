@@ -14,7 +14,6 @@ interface WrappedDisplayProps {
 
 const COLORS = ['#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#581c87', '#4c1d95']
 
-// Chain color mapping
 const CHAIN_COLORS: Record<string, string> = {
   'Ethereum': '#627EEA',
   'Polygon': '#8247E5',
@@ -46,7 +45,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
   const [showConfetti, setShowConfetti] = useState(false)
   const { stats, address, chains = [], transactions = [], tokenTransfers = [] } = data
 
-  // Calculate chain-specific stats
   const chainStats = chains.reduce((acc, chainName) => {
     const chainTxs = transactions.filter(tx => tx.chain === chainName)
     const chainTokenTransfers = tokenTransfers.filter(tt => tt.chain === chainName)
@@ -88,9 +86,7 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
     { name: 'Failed', value: stats.failedTransactions },
   ]
 
-  // Build all slides array
   const allSlides = [
-    // Slide 1: Welcome
     <div key="welcome" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -106,7 +102,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 2: Chains Scanned
     <div key="chains" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in w-full max-w-4xl">
@@ -141,7 +136,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 3: Total Transactions
     <div key="transactions" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -154,7 +148,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 4: Success Rate
     <div key="success" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -168,7 +161,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 5: Most Active
     <div key="active" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/5 via-transparent to-primary-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -180,7 +172,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 6: Money Out
     <div key="money-out" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-red-900/5 via-transparent to-red-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -193,7 +184,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 7: Money In
     <div key="money-in" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-green-900/5 via-transparent to-green-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -206,7 +196,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     </div>,
 
-    // Slide 8: Airdrops (conditional)
     stats.airdrops && stats.airdrops.length > 0 ? (
       <div key="airdrops" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/5 via-transparent to-yellow-900/5 pointer-events-none" />
@@ -227,7 +216,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
       </div>
     ) : null,
 
-    // Slide 9: Contract Interactions
     <div key="contracts" className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/5 via-transparent to-blue-900/5 pointer-events-none" />
       <div className="relative mb-8 animate-fade-in">
@@ -241,11 +229,9 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
     </div>,
   ]
 
-  // Filter out null slides
   const validSlides = allSlides.filter((slide): slide is JSX.Element => slide !== null)
-  const totalSlides = validSlides.length // Full stats will be at this index
+  const totalSlides = validSlides.length
 
-  // Auto-advance slides
   useEffect(() => {
     const timer = setTimeout(() => {
       if (currentSlide < totalSlides) {
@@ -255,7 +241,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
     return () => clearTimeout(timer)
   }, [currentSlide, totalSlides])
 
-  // Trigger confetti on slide changes
   useEffect(() => {
     if (currentSlide < totalSlides && currentSlide > 0) {
       setShowConfetti(true)
@@ -266,10 +251,8 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
 
   const slides = [
     ...validSlides,
-    // Last slide: Full Stats
     <div key="full" className="min-h-screen py-16 px-4 bg-black">
       <div className="max-w-7xl mx-auto space-y-10">
-        {/* Header */}
         <div className="relative mb-12">
           <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/10 rounded-2xl blur-3xl"></div>
           <div className="relative bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-2xl">
@@ -301,7 +284,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         </div>
 
-        {/* Financial Overview */}
         <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-2xl">
           <h3 className="text-3xl font-extrabold mb-6 text-white tracking-tight flex items-center gap-3">
             <span className="w-1 h-8 bg-gradient-to-b from-primary-500 to-primary-700 rounded-full"></span>
@@ -364,7 +346,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <StatCard
             title="Total Transactions"
@@ -412,7 +393,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           />
         </div>
 
-        {/* Airdrops Section */}
         {stats.airdrops && stats.airdrops.length > 0 && (
           <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-xl">
             <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
@@ -438,7 +418,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         )}
 
-        {/* Chain Breakdown */}
         {chains.length > 0 && (
           <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-2xl">
             <div className="flex items-center justify-between mb-8">
@@ -488,7 +467,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                     className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 hover:border-primary-500/50 transition-all group relative overflow-hidden"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    {/* Gradient overlay */}
                     <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
                       style={{ background: `linear-gradient(135deg, ${chainColor}00, ${chainColor}40)` }}
@@ -532,7 +510,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
                         </div>
                       </div>
 
-                      {/* Progress bar */}
                       <div className="mt-4 pt-4 border-t border-[#1f1f1f]">
                         <div className="flex justify-between text-xs text-gray-500 mb-1">
                           <span>Activity</span>
@@ -556,7 +533,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         )}
 
-        {/* Activity Highlights */}
         <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-xl">
           <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
             <span className="w-1 h-8 bg-gradient-to-b from-primary-500 to-primary-700 rounded-full"></span>
@@ -580,7 +556,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         </div>
 
-        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-xl">
             <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
@@ -635,7 +610,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         </div>
 
-        {/* Top Tokens */}
         {stats.topTokens.length > 0 && (
           <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-xl">
             <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
@@ -666,7 +640,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         )}
 
-        {/* Top Contracts */}
         {stats.topContracts.length > 0 && (
           <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-xl">
             <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
@@ -694,7 +667,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
           </div>
         )}
 
-        {/* Footer */}
         <div className="text-center py-12 text-gray-500 text-sm border-t border-[#1f1f1f] mt-8">
           <p className="mb-1">Generated for {shortenAddress(address, 20)}</p>
           <p>Wallet Wrapped 2025</p>
@@ -705,13 +677,10 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
 
   return (
     <div className={`relative min-h-screen bg-black ${currentSlide === totalSlides ? 'overflow-auto' : 'overflow-hidden'}`}>
-      {/* Confetti */}
       <Confetti trigger={showConfetti} duration={2000} />
 
-      {/* Background Audio */}
       <AudioPlayer autoPlay={true} loop={true} volume={0.2} />
 
-      {/* Slide Navigation */}
       {currentSlide < totalSlides && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-2">
           {validSlides.map((_, index) => (
@@ -725,7 +694,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
         </div>
       )}
 
-      {/* Skip to full view button */}
       {currentSlide < totalSlides && (
         <button
           onClick={() => setCurrentSlide(totalSlides)}
@@ -735,7 +703,6 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
         </button>
       )}
 
-      {/* Back button for full stats */}
       {currentSlide === totalSlides && (
         <button
           onClick={() => setCurrentSlide(0)}
@@ -745,14 +712,11 @@ export default function WrappedDisplay({ data, onReset }: WrappedDisplayProps) {
         </button>
       )}
 
-      {/* Slides */}
       {currentSlide === totalSlides ? (
-        // Full stats page - render normally for scrolling
         <div className="relative">
           {slides[slides.length - 1]}
         </div>
       ) : (
-        // Other slides - use absolute positioning
         <div className="relative">
           {validSlides.map((slide, index) => (
             <div
@@ -775,7 +739,6 @@ function StatCard({ title, value, subtitle, delay = 0, gradient = '' }: { title:
       className={`bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-6 hover:border-primary-500/50 transition-all animate-fade-in group relative overflow-hidden shadow-lg ${gradient ? `bg-gradient-to-br ${gradient}` : ''}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
       <div className="relative">

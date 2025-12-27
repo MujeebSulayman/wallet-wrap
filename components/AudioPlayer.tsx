@@ -26,13 +26,11 @@ export default function AudioPlayer({
 
     audio.volume = isMuted ? 0 : volume
 
-    // Handle audio load errors
     const handleError = (e: any) => {
       console.log('Audio error:', e)
       setIsPlaying(false)
     }
 
-    // Handle successful load
     const handleCanPlay = () => {
       console.log('Audio can play')
       if (autoPlay && hasUserInteracted) {
@@ -42,7 +40,6 @@ export default function AudioPlayer({
       }
     }
 
-    // Handle play/pause events
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
     const handleEnded = () => setIsPlaying(false)
@@ -53,7 +50,6 @@ export default function AudioPlayer({
     audio.addEventListener('pause', handlePause)
     audio.addEventListener('ended', handleEnded)
 
-    // Try to load audio
     audio.load()
 
     return () => {
@@ -65,7 +61,6 @@ export default function AudioPlayer({
     }
   }, [autoPlay, volume, isMuted, hasUserInteracted])
 
-  // Enable audio after user interaction
   useEffect(() => {
     const enableAudio = () => {
       setHasUserInteracted(true)
@@ -79,7 +74,6 @@ export default function AudioPlayer({
       }
     }
 
-    // Listen for any user interaction
     document.addEventListener('click', enableAudio, { once: true })
     document.addEventListener('keydown', enableAudio, { once: true })
     document.addEventListener('touchstart', enableAudio, { once: true })

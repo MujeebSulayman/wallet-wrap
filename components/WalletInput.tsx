@@ -20,14 +20,11 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-950/30 via-black to-primary-950/20 pointer-events-none" />
       
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20 pointer-events-none" />
       
       <div className="relative w-full max-w-6xl mx-auto">
-        {/* Header Section */}
         <div className="text-center mb-16">
           <div className="inline-block mb-8 relative">
             <div className="absolute inset-0 bg-primary-500/20 blur-3xl rounded-full"></div>
@@ -48,9 +45,7 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
           </p>
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - Features */}
           <div className="lg:col-span-1 space-y-4">
             <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-6 hover:border-primary-500/30 transition-all">
               <div className="flex items-center gap-3 mb-3">
@@ -89,10 +84,8 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
             </div>
           </div>
 
-          {/* Center Column - Main Form */}
           <div className="lg:col-span-2">
             <div className="bg-gradient-to-br from-[#0f0f0f] via-[#0a0a0a] to-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-              {/* Decorative gradient */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl"></div>
               
@@ -103,7 +96,6 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Address Input */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-3">
                       Wallet Address
@@ -125,7 +117,6 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
                     </div>
                   </div>
                   
-                  {/* Error Message */}
                   {error && (
                     <div className="bg-red-950/30 border border-red-900/30 rounded-xl p-4 text-red-400 text-sm flex items-center gap-2">
                       <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +126,6 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
                     </div>
                   )}
                   
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={loading || !address.trim()}
@@ -173,7 +163,6 @@ export default function WalletInput({ onFetch, loading, error }: WalletInputProp
           </div>
         </div>
 
-        {/* Footer Info */}
         <div className="text-center mt-12">
           <p className="text-sm text-gray-500">
             Powered by Etherscan API • Supports 10+ EVM chains
