@@ -4,14 +4,14 @@ A beautiful Spotify Wrapped-style application that shows all activities of a wal
 
 ## Features
 
-- 🌐 **Multi-Chain Support**: Automatically scans Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, Scroll, Avalanche, BNB Chain
-- 🎵 **Background Music**: Ambient music plays during the wrapped experience (add your own MP3 file)
-- 📊 Complete transaction analysis across all chains
-- 🪙 Token transfer tracking
-- 📈 Beautiful charts and visualizations
-- 🎨 Spotify Wrapped-inspired design with slide-by-slide reveal
-- ⚡ Real-time data from multiple chain APIs
-- 📱 Responsive design
+-  **Multi-Chain Support**: Automatically scans Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, Scroll, Avalanche, BNB Chain
+-  **Background Music**: Ambient music plays during the wrapped experience (add your own MP3 file)
+-  Complete transaction analysis across all chains
+-  Token transfer tracking
+-  Beautiful charts and visualizations
+-  Spotify Wrapped-inspired design with slide-by-slide reveal
+-  Real-time data from multiple chain APIs
+-  Responsive design
 
 ## Getting Started
 
@@ -26,24 +26,19 @@ A beautiful Spotify Wrapped-style application that shows all activities of a wal
 npm install
 ```
 
-2. (Optional) Add your API key to `.env.local`:
-```
-ETHERSCAN_API_KEY=your_api_key_here
-# or
-ALCHEMY_API_KEY=your_api_key_here
-```
+
 
 Note: The app will work without an API key for testing, but you'll be rate-limited. Get free API keys from:
 - [Etherscan](https://etherscan.io/apis) - works for Ethereum and many L2s
 - [Alchemy](https://www.alchemy.com/) - unified API for multiple chains
 - Individual chain explorers (Polygonscan, Arbiscan, etc.)
 
-3. Run the development server:
+2. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Usage
 
@@ -67,4 +62,3 @@ npm run dev
 - Multi-chain APIs (Etherscan-compatible APIs for each chain)
 - date-fns
 
-## License
