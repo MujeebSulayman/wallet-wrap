@@ -31,7 +31,7 @@ npm install
 Note: The app will work without an API key for testing, but you'll be rate-limited. Get free API keys from:
 - [Etherscan](https://etherscan.io/apis) - works for Ethereum and many L2s
 - [Alchemy](https://www.alchemy.com/) - unified API for multiple chains
-- Individual chain explorers (Polygonscan, Arbiscan, etc.)
+- Individual chain explorers (Polygonscan, Arbiscan, Base, Ethereum, etc.)
 
 2. Run the development server:
 ```bash
